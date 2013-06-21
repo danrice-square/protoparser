@@ -49,6 +49,9 @@ public final class ProtoSchemaParser {
   /** Output package name, or null if none yet encountered. */
   private String packageName;
 
+  /** The current package name + nested type names, separated by dots. */
+  private String prefix;
+
   /** Imported files. */
   private List<String> dependencies = new ArrayList<String>();
 
@@ -113,6 +116,7 @@ public final class ProtoSchemaParser {
       if (!context.permitsPackage()) throw unexpected("package in " + context);
       if (packageName != null) throw unexpected("too many package names");
       packageName = readName();
+      prefix = packageName + ".";
       if (readChar() != ';') throw unexpected("expected ';'");
       return null;
     } else if (label.equals("import")) {
@@ -155,7 +159,9 @@ public final class ProtoSchemaParser {
 
   /** Reads a message declaration. */
   private MessageType readMessage(String documentation) {
+    String oprefix = prefix;
     String name = readName();
+    prefix = prefix + name + ".";
     List<MessageType.Field> fields = new ArrayList<MessageType.Field>();
     List<Type> nestedTypes = new ArrayList<Type>();
     if (readChar() != '{') throw unexpected("expected '{'");
@@ -172,7 +178,8 @@ public final class ProtoSchemaParser {
         nestedTypes.add((Type) declared);
       }
     }
-    return new MessageType(name, documentation, fields, nestedTypes);
+    prefix = oprefix;
+    return new MessageType(name, prefix + name, documentation, fields, nestedTypes);
   }
 
   /** Reads an extend declaration (just ignores the content). */
@@ -224,7 +231,7 @@ public final class ProtoSchemaParser {
         values.add((EnumType.Value) declared);
       }
     }
-    return new EnumType(name, documentation, values);
+    return new EnumType(name, prefix + name, documentation, values);
   }
 
   /** Reads an field declaration and returns it. */
