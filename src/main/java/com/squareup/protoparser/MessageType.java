@@ -9,23 +9,36 @@ import java.util.Map;
 
 public final class MessageType implements Type {
   private final String name;
+  private final String fqname;
   private final String documentation;
   private final List<Field> fields;
   private final List<Type> nestedTypes;
 
-  MessageType(String name, String documentation, List<Field> fields, List<Type> nestedTypes) {
+  MessageType(String name, String fqname, String documentation, List<Field> fields,
+      List<Type> nestedTypes) {
     if (name == null) throw new NullPointerException("name");
+    if (fqname == null) throw new NullPointerException("fqname");
     if (documentation == null) throw new NullPointerException("documentation");
     if (fields == null) throw new NullPointerException("fields");
     if (nestedTypes == null) throw new NullPointerException("nestedTypes");
     this.name = name;
+    this.fqname = fqname;
     this.documentation = documentation;
     this.fields = Collections.unmodifiableList(new ArrayList<Field>(fields));
     this.nestedTypes = Collections.unmodifiableList(new ArrayList<Type>(nestedTypes));
   }
 
+  // Set the fully-qualified name to be the same as name
+  MessageType(String name, String documentation, List<Field> fields, List<Type> nestedTypes) {
+    this(name, name, documentation, fields, nestedTypes);
+  }
+
   @Override public String getName() {
     return name;
+  }
+
+  @Override public String getFullyQualifiedName() {
+    return fqname;
   }
 
   public String getDocumentation() {
